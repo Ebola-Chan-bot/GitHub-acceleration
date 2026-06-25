@@ -166,26 +166,17 @@ function 计算-镜像评分 {
         [pscustomobject]$统计
     )
 
+    # 无记录的镜像视为成功失败各 1 次（初始评分 0.5）
     $成功次数 = [int]$统计.成功次数
     $失败次数 = [int]$统计.失败次数
     $总次数 = $成功次数 + $失败次数
 
     if ($总次数 -gt 0) {
-        $成功率 = [double]$成功次数 / [double]$总次数
+        return [double]$成功次数 / [double]$总次数
     }
     else {
-        $成功率 = 0.5
+        return 0.5
     }
-
-    $最近结果修正 = 0
-    if ($统计.最近结果 -eq "成功") {
-        $最近结果修正 = 10
-    }
-    elseif ($统计.最近结果 -eq "失败") {
-        $最近结果修正 = -10
-    }
-
-    return ($成功率 * 100) + ($成功次数 * 2) - ($失败次数 * 2) + $最近结果修正
 }
 
 function 记录-镜像尝试 {
@@ -334,8 +325,8 @@ function 拉取-GitHub镜像 {
     $成功镜像地址 = ""
     foreach ($镜像条目 in $候选镜像条目) {
         $镜像地址 = $镜像条目.地址
-        $显示评分 = [math]::Round($镜像条目.评分, 2)
-        Write-Host "尝试从镜像拉取（评分 $显示评分）：$镜像地址"
+        $显示评分 = [math]::Round($镜像条目.评分 * 100, 1)
+        Write-Host "尝试从镜像拉取（成功率 $显示评分%）：$镜像地址"
 
         $开始时间 = Get-Date
         $拉取成功 = 尝试-Git命令 @("fetch", $镜像地址, $分支)
@@ -444,8 +435,8 @@ function 克隆-GitHub镜像 {
     $成功镜像地址 = ""
     foreach ($镜像条目 in $候选镜像条目) {
         $镜像地址 = $镜像条目.地址
-        $显示评分 = [math]::Round($镜像条目.评分, 2)
-        Write-Host "尝试从镜像克隆（评分 $显示评分）：$镜像地址"
+        $显示评分 = [math]::Round($镜像条目.评分 * 100, 1)
+        Write-Host "尝试从镜像克隆（成功率 $显示评分%）：$镜像地址"
 
         $开始时间 = Get-Date
         $克隆成功 = 尝试-Git命令 @("clone", "--depth", "1", "--single-branch", $镜像地址, $本地路径)
@@ -512,27 +503,19 @@ function 查看-镜像统计 {
     foreach ($属性 in $镜像记录.镜像.PSObject.Properties) {
         $统计 = 确保-镜像统计结构 $属性.Value
         $评分 = 计算-镜像评分 $统计
-        $总次数 = [int]$统计.成功次数 + [int]$统计.失败次数
-        if ($总次数 -gt 0) {
-            $成功率 = [math]::Round(([double]$统计.成功次数 / [double]$总次数) * 100, 1)
-        }
-        else {
-            $成功率 = $null
-        }
+        成功百分比 = [math]::Round($评分 * 100, 1)
 
         $统计列表 += [pscustomobject]@{
             镜像地址   = $属性.Name
             成功次数   = [int]$统计.成功次数
             失败次数   = [int]$统计.失败次数
-            成功率百分比 = $成功率
-            评分       = [math]::Round($评分, 2)
-            最近结果   = $统计.最近结果
+            成功率     = "$成功百分比%"
             最近耗时毫秒 = $统计.最近耗时毫秒
             最后尝试   = $统计.最后尝试时间
         }
     }
 
-    $统计列表 | Sort-Object -Property 评分 -Descending | Format-Table -AutoSize
+    $统计列表 | Sort-Object -Property { [double]($_.成功率 -replace '%', '') } -Descending | Format-Table -AutoSize
 }
 
 <#

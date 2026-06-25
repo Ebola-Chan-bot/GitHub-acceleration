@@ -3,7 +3,7 @@
 # 安装
 
 ```powershell
-Import-Module '.\GitHub加速\GitHub加速.psd1'
+Install-Module -Name GitHub加速 -Scope AllUsers
 ```
 
 # 命令
@@ -58,7 +58,7 @@ Import-Module '.\GitHub加速\GitHub加速.psd1'
 # 工作原理
 
 1. 获取仓库 HTTPS 地址（SSH 地址自动转换）
-2. 读取本地镜像成功/失败记录，按评分排序（成功率 × 100 + 成功次数 × 2 − 失败次数 × 2 + 最近结果修正）
+2. 读取本地镜像成功/失败记录，按成功率排序（无记录的镜像视为成功失败各 1 次，初始成功率 50%）
 3. 按评分从高到低依次尝试各镜像站
 4. 成功后记录统计并继续操作（fetch 后自动 `git merge --ff-only FETCH_HEAD`）
 
