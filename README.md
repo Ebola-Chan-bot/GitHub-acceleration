@@ -12,6 +12,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 |------|------|
 | `拉取-GitHub镜像` | 在现有仓库中通过镜像站 git fetch + 快进合并 |
 | `克隆-GitHub镜像` | 通过镜像站浅克隆仓库（只取默认分支最新提交） |
+| `推送-GitHub` | 推送当前分支，支持可选代理（首次指定即永久记住） |
 | `查看-镜像统计` | 查看各镜像站的历史成功率、耗时等统计 |
 | `重置-镜像统计` | 清除统计记录，从头开始 |
 
@@ -44,6 +45,30 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 # 指定自定义镜像站
 克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh.llkk.cc/"
 ```
+
+## 推送（支持可选代理）
+
+拉取走镜像，推送需要直连 GitHub。`推送-GitHub` 支持通过本地代理推送。代理只需在第一次推送时通过 `-代理` 参数指定一次，之后永久记住，以后直接推送即可：
+
+```powershell
+# 首次推送：指定代理，自动保存，之后无需再指定
+推送-GitHub -代理 "http://127.0.0.1:7890"
+
+# 以后推送：自动使用记住的代理
+推送-GitHub
+
+# 指定仓库目录（默认当前目录）
+推送-GitHub -仓库目录 "D:\Repo"
+
+# 显式指定远程（不指定时自动选择：有 origin 用 origin；
+# 无 origin 且仅一个远程则用该远程；无 origin 且多个远程则报错）
+推送-GitHub -远程名 "upstream"
+
+# 清除记住的代理，恢复直连
+推送-GitHub -代理 ""
+```
+
+代理只影响本模块的推送功能：代理仅以 `git -c http.proxy=... -c https.proxy=...` 命令行参数形式在本次进程内生效，不写入任何 git 配置、不修改全局环境变量，用户手动执行的 `git push` 等命令完全不受影响。代理保存在 `%TEMP%\镜像拉取记录.json` 中。
 
 ## 统计管理
 
