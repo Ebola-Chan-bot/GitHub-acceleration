@@ -61,7 +61,7 @@
     # 私有数据
     PrivateData       = @{
         PSData = @{
-            Tags         = @('git', 'github', 'mirror', 'proxy', 'fetch', 'pull', '镜像', '加速', 'China')
+            Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
             ReleaseNotes = '新增 推送-GitHub 命令，支持可选代理推送（代理首次指定即永久记住，仅作用于本模块推送，不影响手动 git）。'

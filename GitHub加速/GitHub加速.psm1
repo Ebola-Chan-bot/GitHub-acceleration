@@ -363,34 +363,32 @@ function 拉取-GitHub镜像 {
 	$源仓库地址 = 读取-Git文本 @("remote", "get-url", $远程名)
 	$HTTPS仓库地址 = 转换为-HTTPS仓库地址 $源仓库地址
 
-	$候选镜像地址 = @()
+	$镜像记录 = 读取-镜像记录 $记录文件路径
+
+	# 统计按镜像站（前缀）记录，与具体仓库无关，可跨仓库共享历史经验
+	$候选镜像条目 = @()
 	foreach ($镜像站 in $镜像站前缀) {
-		if (-not [string]::IsNullOrWhiteSpace($镜像站)) {
-			$候选镜像地址 += 合成-镜像仓库地址 $镜像站 $HTTPS仓库地址
+		if ([string]::IsNullOrWhiteSpace($镜像站)) {
+			continue
+		}
+
+		$站点 = $镜像站.TrimEnd("/")
+		if (@($候选镜像条目.站点) -contains $站点) {
+			continue
+		}
+
+		$候选镜像条目 += [pscustomobject]@{
+			站点 = $站点
+			地址 = 合成-镜像仓库地址 $镜像站 $HTTPS仓库地址
+			评分 = 计算-镜像评分 (读取-镜像统计 $镜像记录 $站点)
 		}
 	}
 
-	$候选镜像地址 = @($候选镜像地址 | Select-Object -Unique)
-	if ($候选镜像地址.Count -eq 0) {
+	if ($候选镜像条目.Count -eq 0) {
 		throw "没有可用的镜像站地址，请检查 -镜像站前缀 参数。"
 	}
 
-	$镜像记录 = 读取-镜像记录 $记录文件路径
-
-	$候选镜像条目 = @()
-	$原始序号 = 0
-	foreach ($镜像地址 in $候选镜像地址) {
-		$统计 = 读取-镜像统计 $镜像记录 $镜像地址
-		$评分 = 计算-镜像评分 $统计
-		$候选镜像条目 += [pscustomobject]@{
-			地址  = $镜像地址
-			评分  = $评分
-			排序值 = ($评分 * 1000000) - $原始序号
-		}
-		$原始序号 += 1
-	}
-
-	$候选镜像条目 = @($候选镜像条目 | Sort-Object -Property 排序值 -Descending)
+	$候选镜像条目 = @($候选镜像条目 | Sort-Object -Property 评分 -Descending)
 
 	$成功镜像地址 = ""
 	foreach ($镜像条目 in $候选镜像条目) {
@@ -401,7 +399,7 @@ function 拉取-GitHub镜像 {
 		$开始时间 = Get-Date
 		$拉取成功 = 尝试-Git命令 @("fetch", $镜像地址, $分支)
 		$耗时毫秒 = [int]((Get-Date) - $开始时间).TotalMilliseconds
-		记录-镜像尝试 $镜像记录 $镜像地址 $拉取成功 $耗时毫秒
+		记录-镜像尝试 $镜像记录 $镜像条目.站点 $拉取成功 $耗时毫秒
 		保存-镜像记录 $镜像记录 $记录文件路径
 
 		if ($拉取成功) {
@@ -435,7 +433,9 @@ function 拉取-GitHub镜像 {
 .PARAMETER 仓库地址
 	GitHub 仓库的 HTTPS 或 SSH 地址，如 https://github.com/用户/仓库.git 或 git@github.com:用户/仓库.git。
 .PARAMETER 本地路径
-	克隆到的本地目标路径。若已存在则报错退出。
+	克隆到的本地目标路径。若该路径不存在则直接克隆到此路径；
+	若已存在且为目录，则自动在其下创建与仓库同名的子目录并克隆进去；
+	若已存在但不是目录（如同名文件）则报错。
 .PARAMETER 镜像站前缀
 	镜像站地址前缀列表，默认内置 5 个国内常用镜像站。
 .PARAMETER 记录文件路径
@@ -469,40 +469,52 @@ function 克隆-GitHub镜像 {
 		[string]$记录文件路径 = (Join-Path $env:TEMP "镜像拉取记录.json")
 	)
 
-	if (Test-Path -LiteralPath $本地路径) {
-		throw "目标路径已存在：$本地路径"
-	}
-
 	$HTTPS仓库地址 = 转换为-HTTPS仓库地址 $仓库地址
 
-	$候选镜像地址 = @()
-	foreach ($镜像站 in $镜像站前缀) {
-		if (-not [string]::IsNullOrWhiteSpace($镜像站)) {
-			$候选镜像地址 += 合成-镜像仓库地址 $镜像站 $HTTPS仓库地址
+	if (Test-Path -LiteralPath $本地路径) {
+		if (-not (Test-Path -LiteralPath $本地路径 -PathType Container)) {
+			throw "目标路径已存在且不是目录：$本地路径"
 		}
-	}
 
-	$候选镜像地址 = @($候选镜像地址 | Select-Object -Unique)
-	if ($候选镜像地址.Count -eq 0) {
-		throw "没有可用的镜像站地址，请检查 -镜像站前缀 参数。"
+		$仓库名 = $HTTPS仓库地址.TrimEnd("/").Split("/")[-1] -replace "(?i)\.git$", ""
+		if ([string]::IsNullOrWhiteSpace($仓库名)) {
+			throw "无法从仓库地址解析出仓库名：$仓库地址"
+		}
+
+		$本地路径 = Join-Path $本地路径 $仓库名
+		Write-Host "目标路径已存在，改为克隆到子目录：$本地路径"
+
+		if (Test-Path -LiteralPath $本地路径) {
+			throw "目标子目录已存在：$本地路径"
+		}
 	}
 
 	$镜像记录 = 读取-镜像记录 $记录文件路径
 
+	# 统计按镜像站（前缀）记录，与具体仓库无关，可跨仓库共享历史经验
 	$候选镜像条目 = @()
-	$原始序号 = 0
-	foreach ($镜像地址 in $候选镜像地址) {
-		$统计 = 读取-镜像统计 $镜像记录 $镜像地址
-		$评分 = 计算-镜像评分 $统计
-		$候选镜像条目 += [pscustomobject]@{
-			地址  = $镜像地址
-			评分  = $评分
-			排序值 = ($评分 * 1000000) - $原始序号
+	foreach ($镜像站 in $镜像站前缀) {
+		if ([string]::IsNullOrWhiteSpace($镜像站)) {
+			continue
 		}
-		$原始序号 += 1
+
+		$站点 = $镜像站.TrimEnd("/")
+		if (@($候选镜像条目.站点) -contains $站点) {
+			continue
+		}
+
+		$候选镜像条目 += [pscustomobject]@{
+			站点 = $站点
+			地址 = 合成-镜像仓库地址 $镜像站 $HTTPS仓库地址
+			评分 = 计算-镜像评分 (读取-镜像统计 $镜像记录 $站点)
+		}
 	}
 
-	$候选镜像条目 = @($候选镜像条目 | Sort-Object -Property 排序值 -Descending)
+	if ($候选镜像条目.Count -eq 0) {
+		throw "没有可用的镜像站地址，请检查 -镜像站前缀 参数。"
+	}
+
+	$候选镜像条目 = @($候选镜像条目 | Sort-Object -Property 评分 -Descending)
 
 	$成功镜像地址 = ""
 	foreach ($镜像条目 in $候选镜像条目) {
@@ -513,7 +525,7 @@ function 克隆-GitHub镜像 {
 		$开始时间 = Get-Date
 		$克隆成功 = 尝试-Git命令 @("clone", "--depth", "1", "--single-branch", $镜像地址, $本地路径)
 		$耗时毫秒 = [int]((Get-Date) - $开始时间).TotalMilliseconds
-		记录-镜像尝试 $镜像记录 $镜像地址 $克隆成功 $耗时毫秒
+		记录-镜像尝试 $镜像记录 $镜像条目.站点 $克隆成功 $耗时毫秒
 		保存-镜像记录 $镜像记录 $记录文件路径
 
 		if ($克隆成功) {
@@ -680,7 +692,7 @@ function 查看-镜像统计 {
 		$成功百分比 = [math]::Round($评分 * 100, 1)
 
 		$统计列表 += [pscustomobject]@{
-			镜像地址   = $属性.Name
+			镜像站    = $属性.Name
 			成功次数   = [int]$统计.成功次数
 			失败次数   = [int]$统计.失败次数
 			成功率     = "$成功百分比%"
