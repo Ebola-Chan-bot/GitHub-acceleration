@@ -46,6 +46,8 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh.llkk.cc/"
 ```
 
+克隆完成后，模块会自动将远程 `origin` 的地址改回原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
+
 ## 推送（支持可选代理）
 
 拉取走镜像，推送需要直连 GitHub。`推送-GitHub` 支持通过本地代理推送。代理只需在第一次推送时通过 `-代理` 参数指定一次，之后永久记住，以后直接推送即可：

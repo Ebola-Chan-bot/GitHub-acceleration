@@ -430,6 +430,8 @@ function 拉取-GitHub镜像 {
 	接受仓库远程地址和本地路径作为参数，使用与拉取相同的动态镜像排序策略，
 	依次尝试克隆，成功后记录镜像统计。仅克隆默认分支（--single-branch）且
 	只获取最新一次提交（--depth 1），适合快速获取大型仓库的最新代码。
+	克隆完成后自动将远程 origin 的地址改回原始 GitHub 地址，
+	因此后续手动 git pull/push 等操作直接走 GitHub，不受镜像影响。
 .PARAMETER 仓库地址
 	GitHub 仓库的 HTTPS 或 SSH 地址，如 https://github.com/用户/仓库.git 或 git@github.com:用户/仓库.git。
 .PARAMETER 本地路径
@@ -533,8 +535,12 @@ function 克隆-GitHub镜像 {
 
 	Push-Location $本地路径
 	try {
+		# 克隆自镜像站，origin 指向镜像地址，改回原始 GitHub 地址，避免后续 git 操作走镜像
+		执行-Git命令 @("remote", "set-url", "origin", $HTTPS仓库地址)
+
 		$最新提交 = 读取-Git文本 @("log", "-1", "--pretty=format:%h %s")
-		Write-Host "克隆完成。当前最新提交：$最新提交"
+		Write-Host "克隆完成。已将远程 origin 改回 $HTTPS仓库地址"
+		Write-Host "当前最新提交：$最新提交"
 	}
 	finally {
 		Pop-Location

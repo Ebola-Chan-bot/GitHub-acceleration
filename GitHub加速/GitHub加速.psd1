@@ -27,7 +27,7 @@
    拉取-GitHub镜像 [-镜像站前缀 <镜像URL列表>] [-远程名 origin]
    例：拉取-GitHub镜像；拉取-GitHub镜像 -远程名 upstream
 
-2. 克隆-GitHub镜像：通过镜像站浅克隆仓库（--depth 1 --single-branch），仅取默认分支最新提交。
+2. 克隆-GitHub镜像：通过镜像站浅克隆仓库（--depth 1 --single-branch），仅取默认分支最新提交；克隆完成后自动将远程 origin 改回原始 GitHub 地址，后续 git 操作不受镜像影响。
    克隆-GitHub镜像 <仓库HTTPS/SSH地址> <本地路径> [-镜像站前缀 <镜像URL列表>]
    例：克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"
 
