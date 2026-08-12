@@ -46,7 +46,9 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh.llkk.cc/"
 ```
 
-克隆完成后，模块会自动将远程 `origin` 的地址改回原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
+克隆完成后，远程 `origin` 直接指向原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
+
+克隆支持**断点续传**：内部采用 `git init` + `git fetch` 实现，已下载的对象会保留在本地。若某次所有镜像都失败（如大仓库传到一半断流），再次运行同一条克隆命令即可从断点继续，只补拉缺失部分，还可以换用其他镜像站续传。
 
 ## 推送（支持可选代理）
 
