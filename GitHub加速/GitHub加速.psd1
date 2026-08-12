@@ -4,7 +4,7 @@
 @{
 
     # 模块版本
-    ModuleVersion     = '1.1.0'
+    ModuleVersion     = '1.1.1'
 
     # 模块 GUID
     GUID              = '120952b7-5ab7-4f8c-bb27-3aa50bf5929f'
@@ -32,7 +32,7 @@
    例：克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"
 
 3. 推送-GitHub：直连推送当前分支，支持可选代理。
-   推送-GitHub [-代理 <代理地址>] [-远程名 <远程>] [-仓库目录 <路径，默认当前目录>]
+   推送-GitHub [<仓库目录，默认当前目录>] [-代理 <代理地址>] [-远程名 <远程>]
    远程自动解析：有 origin 用 origin；无 origin 且仅一个远程则用该远程；无 origin 且多个远程则报错。
    代理首次指定即永久记住，以后无需再指定；传空字符串可清除。代理仅以 git -c http.proxy/-c https.proxy 本次进程内生效，不影响手动 git。
    例：推送-GitHub -代理 "http://127.0.0.1:7890"；推送-GitHub

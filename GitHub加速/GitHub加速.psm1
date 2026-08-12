@@ -680,6 +680,8 @@ function 克隆-GitHub镜像 {
 	不指定 -远程名 时自动解析：优先使用 origin；没有 origin 且仅有一个远程则使用该远程；
 	没有 origin 且存在多个远程时报错，需显式指定 -远程名。
 	代理只需通过 -代理 参数指定一次，之后永久记住，以后直接运行 推送-GitHub 会自动使用记住的代理。代理仅以命令行参数 -c http.proxy / -c https.proxy 的形式在本次进程内生效，不写入任何 git 配置文件、不修改全局环境变量，因此完全不影响用户手动执行 git push 或其他 git 命令。指定空字符串（""）可清除已记住的代理，恢复直连推送。
+.PARAMETER 仓库目录
+	第一个位置参数。仓库所在目录路径，默认为当前目录。
 .PARAMETER 代理
 	可选。代理地址，如 "http://127.0.0.1:7890" 或 "socks5://127.0.0.1:1080"。
 	指定后自动保存，无需再次指定；以后每次推送自动使用记住的代理。
@@ -687,8 +689,6 @@ function 克隆-GitHub镜像 {
 .PARAMETER 远程名
 	可选。Git 远程名称。不指定时自动选择：有 origin 则用 origin；
 	无 origin 且只有一个远程则用该远程；无 origin 且有多个远程则报错。
-.PARAMETER 仓库目录
-	仓库所在目录路径，默认为当前目录。
 .PARAMETER 记录文件路径
 	镜像统计记录文件的保存路径（代理也保存在此文件中），默认为 "$env:TEMP\镜像拉取记录.json"。
 .EXAMPLE
@@ -698,8 +698,8 @@ function 克隆-GitHub镜像 {
 	推送-GitHub
 	以后推送：自动使用记住的代理和自动解析的远程。
 .EXAMPLE
-	推送-GitHub -仓库目录 "D:\Repo"
-	推送指定目录下的仓库。
+	推送-GitHub "D:\Repo"
+	推送指定目录下的仓库（仓库目录为第一个位置参数，可不写参数名）。
 .EXAMPLE
 	推送-GitHub -代理 ""
 	清除记住的代理并直连推送。
@@ -707,15 +707,15 @@ function 克隆-GitHub镜像 {
 function 推送-GitHub {
 	[CmdletBinding()]
 	param(
+		[Parameter(Position = 0)]
+		[string]$仓库目录 = ".",
+
 		[Parameter()]
 		[AllowEmptyString()]
 		[string]$代理,
 
 		[Parameter()]
 		[string]$远程名,
-
-		[Parameter()]
-		[string]$仓库目录 = ".",
 
 		[Parameter()]
 		[string]$记录文件路径 = (Join-Path $env:TEMP "镜像拉取记录.json")

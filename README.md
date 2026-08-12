@@ -61,8 +61,8 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 # 以后推送：自动使用记住的代理
 推送-GitHub
 
-# 指定仓库目录（默认当前目录）
-推送-GitHub -仓库目录 "D:\Repo"
+# 指定仓库目录（第一个位置参数，默认当前目录，可不写参数名）
+推送-GitHub "D:\Repo"
 
 # 显式指定远程（不指定时自动选择：有 origin 用 origin；
 # 无 origin 且仅一个远程则用该远程；无 origin 且多个远程则报错）
