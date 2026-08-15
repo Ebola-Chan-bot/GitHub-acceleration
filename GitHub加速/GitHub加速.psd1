@@ -31,7 +31,7 @@
    克隆-GitHub镜像 <仓库HTTPS/SSH地址> <本地路径> [-镜像站前缀 <镜像URL列表>]
    例：克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"
 
-3. 推送-GitHub：直连推送当前分支，支持可选代理。
+3. 推送-GitHub：直连推送当前分支，支持可选代理。若当前分支尚无跟踪则自动建立跟踪。
    推送-GitHub [<仓库目录，默认当前目录>] [-代理 <代理地址>] [-远程名 <远程>]
    远程自动解析：有 origin 用 origin；无 origin 且仅一个远程则用该远程；无 origin 且多个远程则报错。
    代理首次指定即永久记住，以后无需再指定；传空字符串可清除。代理仅以 git -c http.proxy/-c https.proxy 本次进程内生效，不影响手动 git。

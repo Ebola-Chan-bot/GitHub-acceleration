@@ -74,6 +74,8 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 代理只影响本模块的推送功能：代理仅以 `git -c http.proxy=... -c https.proxy=...` 命令行参数形式在本次进程内生效，不写入任何 git 配置、不修改全局环境变量，用户手动执行的 `git push` 等命令完全不受影响。代理保存在 `%TEMP%\镜像拉取记录.json` 中。
 
+若当前分支尚未设置跟踪（上游），推送时会自动建立跟踪关系（相当于 `git push -u`），之后即可直接用 `git pull` / `git push`。
+
 ## 统计管理
 
 ```powershell
