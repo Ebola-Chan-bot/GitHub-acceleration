@@ -111,24 +111,3 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 | hub.gitmirror.com | `https://hub.gitmirror.com/` |
 
 由于不同网络环境下各镜像站的可用性会有差异，模块内置了多个镜像站；实际执行时按各镜像的历史成功率智能排序，在当前环境下能用的镜像会自动排到最前面。
-
-## 安全发布
-
-```powershell
-# 发布当前目录下的模块
-.\Gallery发布.ps1
-
-# 指定模块路径
-.\Gallery发布.ps1 -模块路径 ".\GitHub加速"
-
-# 将 Gallery发布 脚本自身发布到 PSGallery
-.\Gallery发布.ps1 -自身
-```
-
-首次运行会提示输入 PowerShell Gallery API 密钥，之后自动加密保存（Windows DPAPI，仅本机当前用户可解密），后续发布无需任何输入。密钥文件 `.apikey` 自动加入 `.gitignore`。
-
-API 密钥获取：PowerShell Gallery 右上角 → API Keys → Create。
-
-## 许可
-
-MIT
