@@ -64,7 +64,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '新增 推送-GitHub 命令，支持可选代理推送（代理首次指定即永久记住，仅作用于本模块推送，不影响手动 git）。'
+            ReleaseNotes = '模块拆分为多文件（Internal 内部函数 + Public 公开命令，按历史成功率排序等逻辑不变）；推送-GitHub 在被远端 non-fast-forward 拒绝时交互询问是否 --force-with-lease 强推覆盖远端。'
         }
     }
 }

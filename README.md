@@ -27,7 +27,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 拉取-GitHub镜像
 
 # 指定自定义镜像站
-拉取-GitHub镜像 -镜像站前缀 "https://gh.llkk.cc/", "https://gh-proxy.com/"
+拉取-GitHub镜像 -镜像站前缀 "https://gh-proxy.cn/", "https://gh-proxy.org/"
 
 # 从 upstream 拉取
 拉取-GitHub镜像 -远程名 "upstream"
@@ -43,7 +43,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"
 
 # 指定自定义镜像站
-克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh.llkk.cc/"
+克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh-proxy.cn/"
 ```
 
 克隆完成后，远程 `origin` 直接指向原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
@@ -76,6 +76,8 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 若当前分支尚未设置跟踪（上游），推送时会自动建立跟踪关系（相当于 `git push -u`），之后即可直接用 `git pull` / `git push`。
 
+若推送被远端以 non-fast-forward 拒绝（远端存在本地没有的提交），命令会交互式询问是否强推覆盖远端：确认则使用 `git push --force-with-lease` 强推（远端独有的提交将丢失，请谨慎）；否则放弃推送，需先拉取合并远端更改。
+
 ## 统计管理
 
 ```powershell
@@ -97,11 +99,16 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 | 镜像站 | URL |
 |--------|-----|
-| gh.llkk.cc | `https://gh.llkk.cc/` |
+| gh-proxy.cn | `https://gh-proxy.cn/` |
+| gh-proxy.org | `https://gh-proxy.org/` |
+| ghproxy.net | `https://ghproxy.net/` |
 | gh-proxy.com | `https://gh-proxy.com/` |
+| gh.llkk.cc | `https://gh.llkk.cc/` |
 | ghfast.top | `https://ghfast.top/` |
 | gh-proxy.net | `https://gh-proxy.net/` |
 | hub.gitmirror.com | `https://hub.gitmirror.com/` |
+
+由于不同网络环境下各镜像站的可用性会有差异，模块内置了多个镜像站；实际执行时按各镜像的历史成功率智能排序，在当前环境下能用的镜像会自动排到最前面。
 
 ## 安全发布
 
