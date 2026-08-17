@@ -78,6 +78,8 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 若推送被远端以 non-fast-forward 拒绝（远端存在本地没有的提交），命令会交互式询问是否强推覆盖远端：确认则使用 `git push --force-with-lease` 强推（远端独有的提交将丢失，请谨慎）；否则放弃推送，需先拉取合并远端更改。
 
+若仓库启用了 **Git LFS**（常见于上游为大仓库的 fork，如 vscode），推送时 git-lfs 默认要上传推送范围内所有被引用的 LFS 对象；而 fork 不共享上游的 LFS 存储，第一次推送往往要白传几百 MB 的上游 LFS 数据。`推送-GitHub` 会自动检测本次推送范围的提交是否真正改动了 LFS 文件：**没改就自动跳过 LFS 上传**（仅推送 git 对象与 LFS 指针，等同 `GIT_LFS_SKIP_PUSH=1`，上游 LFS 内容不受影响）；确实改了 LFS 文件才正常上传。
+
 ## 统计管理
 
 ```powershell

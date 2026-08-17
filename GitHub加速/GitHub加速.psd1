@@ -35,6 +35,7 @@
    推送-GitHub [<仓库目录，默认当前目录>] [-代理 <代理地址>] [-远程名 <远程>]
    远程自动解析：有 origin 用 origin；无 origin 且仅一个远程则用该远程；无 origin 且多个远程则报错。
    代理首次指定即永久记住，以后无需再指定；传空字符串可清除。代理仅以 git -c http.proxy/-c https.proxy 本次进程内生效，不影响手动 git。
+   启用 LFS 的仓库会自动检测推送范围是否改动 LFS 文件，未改动则自动跳过 LFS 对象上传。
    例：推送-GitHub -代理 "http://127.0.0.1:7890"；推送-GitHub
 
 4. 查看-镜像统计：查看各镜像站的历史成功率、耗时等统计。
@@ -64,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '模块拆分为多文件（Internal 内部函数 + Public 公开命令，按历史成功率排序等逻辑不变）；推送-GitHub 在被远端 non-fast-forward 拒绝时交互询问是否 --force-with-lease 强推覆盖远端。'
+            ReleaseNotes = '推送-GitHub 新增 LFS 自动检测：推送范围内的提交未改动 LFS 文件时自动跳过 LFS 对象上传（避免为上游大体积 LFS 数据白等，如 fork 的大仓库仅推送代码提交的场景）。'
         }
     }
 }
