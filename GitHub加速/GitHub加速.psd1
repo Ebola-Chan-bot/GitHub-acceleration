@@ -4,7 +4,7 @@
 @{
 
     # 模块版本
-    ModuleVersion     = '1.1.1'
+    ModuleVersion     = '1.2.0'
 
     # 模块 GUID
     GUID              = '120952b7-5ab7-4f8c-bb27-3aa50bf5929f'
