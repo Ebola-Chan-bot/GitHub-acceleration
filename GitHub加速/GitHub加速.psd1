@@ -65,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '拉取后自动加跟踪。克隆默认到当前目录下与仓库同名的子目录。镜像成功率计算采用拉普拉斯平滑。'
+            ReleaseNotes = '拉取后自动加跟踪。克隆默认到当前目录下与仓库同名的子目录。镜像成功率计算采用拉普拉斯平滑。用户取消认证不再视为镜像本身失败，直接中断操作。'
         }
     }
 }
