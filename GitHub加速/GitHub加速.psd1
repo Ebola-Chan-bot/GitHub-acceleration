@@ -4,7 +4,7 @@
 @{
 
     # 模块版本
-    ModuleVersion     = '1.2.0'
+    ModuleVersion     = '1.2.1'
 
     # 模块 GUID
     GUID              = '120952b7-5ab7-4f8c-bb27-3aa50bf5929f'
@@ -65,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '推送-GitHub 新增 LFS 自动检测：推送范围内的提交未改动 LFS 文件时自动跳过 LFS 对象上传（避免为上游大体积 LFS 数据白等，如 fork 的大仓库仅推送代码提交的场景）。'
+            ReleaseNotes = '拉取后自动加跟踪'
         }
     }
 }

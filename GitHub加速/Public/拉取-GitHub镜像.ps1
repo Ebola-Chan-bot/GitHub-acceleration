@@ -5,6 +5,8 @@
 	自动检测当前仓库的 origin 远程和当前分支，通过多个镜像代理站点依次尝试 git fetch，
 	并根据历史成功/失败记录智能排序，优先使用成功率最高的镜像。拉取成功后自动执行快进合并（--ff-only）。
 	若快进合并失败（如本地与远程历史分叉），会交互式询问是否强行用远程版本覆盖本地分支。
+	拉取成功后自动为当前分支建立对远程的跟踪关系（利用 FETCH_HEAD 更新 remote-tracking 引用，
+	不需要直连 GitHub），以后即可直接使用 git pull/push。
 .PARAMETER 仓库目录
 	本地仓库目录，默认为当前工作目录。
 .PARAMETER 镜像站前缀
@@ -100,6 +102,21 @@ function 拉取-GitHub镜像 {
 			else {
 				throw "已取消覆盖，本地分支未发生变化。"
 			}
+		}
+
+		# 拉取成功后自动建立分支跟踪关系（镜像 fetch 不会生成 remote-tracking 引用，
+		# 这里直接用 FETCH_HEAD 更新引用，免去再直连 GitHub）
+		$上游 = 尝试读取-Git文本 @("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+		if ([string]::IsNullOrWhiteSpace($上游)) {
+			Write-Host "为当前分支建立跟踪关系：$分支 -> $远程名/$分支 ..."
+			# 确保远程有 fetch refspec（fork 可能缺失），否则跟踪名存实亡
+			$现有规范 = 尝试读取-Git文本 @("config", "--get-all", "remote.$远程名.fetch")
+			if ([string]::IsNullOrWhiteSpace($现有规范)) {
+				执行-Git命令 @("config", "remote.$远程名.fetch", "+refs/heads/*:refs/remotes/$远程名/*")
+			}
+			执行-Git命令 @("update-ref", "refs/remotes/$远程名/$分支", "FETCH_HEAD")
+			执行-Git命令 @("branch", "--set-upstream-to=$远程名/$分支", $分支)
+			Write-Host "已建立跟踪，以后可直接使用 git pull/push。"
 		}
 
 		$最新提交 = 读取-Git文本 @("log", "-1", "--pretty=format:%h %s")
