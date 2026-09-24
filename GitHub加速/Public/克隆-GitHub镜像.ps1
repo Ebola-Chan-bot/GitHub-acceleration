@@ -10,7 +10,8 @@
 .PARAMETER 仓库地址
 	GitHub 仓库的 HTTPS 或 SSH 地址，如 https://github.com/用户/仓库.git 或 git@github.com:用户/仓库.git。
 .PARAMETER 本地路径
-	克隆到的本地目标路径。若该路径不存在则直接克隆到此路径；
+	克隆到的本地目标路径，默认为当前工作目录（即克隆到当前目录下一个与仓库同名的目录）。
+	若该路径不存在则直接克隆到此路径；
 	若已存在且为目录，则自动在其下创建与仓库同名的子目录并克隆进去；
 	若已存在但不是目录（如同名文件）则报错。
 	若目标目录下已存在同一仓库的上次未完成的克隆，则从断点续传（保留已下载的对象）。
@@ -24,6 +25,9 @@
 .EXAMPLE
 	克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh-proxy.cn/"
 	仅使用指定镜像站克隆 Linux 内核仓库。
+.EXAMPLE
+	克隆-GitHub镜像 "https://github.com/PowerShell/PowerShell.git"
+	不指定本地路径，克隆到当前目录下的 PowerShell 子目录。
 #>
 function 克隆-GitHub镜像 {
 	[CmdletBinding()]
@@ -31,8 +35,8 @@ function 克隆-GitHub镜像 {
 		[Parameter(Mandatory = $true, Position = 0)]
 		[string]$仓库地址,
 
-		[Parameter(Mandatory = $true, Position = 1)]
-		[string]$本地路径,
+		[Parameter(Position = 1)]
+		[string]$本地路径 = ".",
 
 		[Parameter(Position = 2)]
 		[string[]]$镜像站前缀 = $script:镜像站前缀,
