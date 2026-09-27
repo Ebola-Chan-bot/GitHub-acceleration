@@ -3,8 +3,8 @@
 	通过镜像站点克隆 GitHub 仓库，仅获取默认分支的最新提交（浅克隆）。
 .DESCRIPTION
 	接受仓库远程地址和本地路径作为参数，使用与拉取相同的动态镜像排序策略，
-	依次尝试克隆，成功后记录镜像统计。仅克隆默认分支（--single-branch）且
-	只获取最新一次提交（--depth 1），适合快速获取大型仓库的最新代码。
+	依次尝试克隆，成功后记录镜像统计。仅克隆一个分支（默认为远端默认分支，
+	可用 -分支 指定）的最新提交（--depth 1），适合快速获取大型仓库的最新代码。
 	克隆完成后自动将远程 origin 的地址改回原始 GitHub 地址，
 	因此后续手动 git pull/push 等操作直接走 GitHub，不受镜像影响。
 .PARAMETER 仓库地址
@@ -15,6 +15,8 @@
 	若已存在且为目录，则自动在其下创建与仓库同名的子目录并克隆进去；
 	若已存在但不是目录（如同名文件）则报错。
 	若目标目录下已存在同一仓库的上次未完成的克隆，则从断点续传（保留已下载的对象）。
+.PARAMETER 分支
+	可选。要克隆的分支名，不指定则克隆远端默认分支（HEAD）。
 .PARAMETER 镜像站前缀
 	镜像站地址前缀列表，默认内置多个常用镜像站。
 .PARAMETER 记录文件路径
@@ -28,6 +30,9 @@
 .EXAMPLE
 	克隆-GitHub镜像 "https://github.com/PowerShell/PowerShell.git"
 	不指定本地路径，克隆到当前目录下的 PowerShell 子目录。
+.EXAMPLE
+	克隆-GitHub镜像 "https://github.com/PowerShell/PowerShell.git" -分支 "release-7.5"
+	仅克隆 release-7.5 分支的最新提交。
 #>
 function 克隆-GitHub镜像 {
 	[CmdletBinding()]
@@ -37,6 +42,9 @@ function 克隆-GitHub镜像 {
 
 		[Parameter(Position = 1)]
 		[string]$本地路径 = ".",
+
+		[Parameter()]
+		[string]$分支,
 
 		[Parameter(Position = 2)]
 		[string[]]$镜像站前缀 = $script:镜像站前缀,
@@ -108,6 +116,12 @@ function 克隆-GitHub镜像 {
 		执行-Git命令 @("-C", $本地路径, "remote", "add", "origin", $HTTPS仓库地址)
 	}
 
+	# 指定分支时只取该分支，否则取远端默认分支（HEAD）
+	$抓取引用 = "HEAD"
+	if (-not [string]::IsNullOrWhiteSpace($分支)) {
+		$抓取引用 = "refs/heads/$分支"
+	}
+
 	Push-Location $本地路径
 	$成功镜像地址 = ""
 	try {
@@ -117,7 +131,7 @@ function 克隆-GitHub镜像 {
 			Write-Host "尝试从镜像拉取（成功率 $显示评分%）：$镜像地址"
 
 			$开始时间 = Get-Date
-			$结果 = Git执行并区分取消 @("fetch", "--depth", "1", "--update-shallow", $镜像地址, "HEAD")
+			$结果 = Git执行并区分取消 @("fetch", "--depth", "1", "--update-shallow", $镜像地址, $抓取引用)
 			$拉取成功 = $结果.成功
 
 			if ($结果.用户取消) {
@@ -156,28 +170,35 @@ function 克隆-GitHub镜像 {
 
 	if ([string]::IsNullOrWhiteSpace($成功镜像地址)) {
 		Write-Host "已保留 $本地路径 中已下载的部分，再次运行本命令可断点续传。"
-		throw "所有镜像站都未能克隆仓库：$仓库地址"
+		if ([string]::IsNullOrWhiteSpace($分支)) {
+			throw "所有镜像站都未能克隆仓库：$仓库地址"
+		}
+		throw "所有镜像站都未能克隆仓库：$仓库地址（如 -分支 $分支 有误或该分支不存在，请核实分支名）"
 	}
 
 	Push-Location $本地路径
 	try {
-		# 查远端默认分支名，避免硬编码 main
-		$远程HEAD行 = 尝试读取-Git文本 @("ls-remote", "--symref", $成功镜像地址, "HEAD")
-		$默认分支 = "main"
-		foreach ($行 in $远程HEAD行 -split "`n") {
-			if ($行 -match "^ref:\s+refs/heads/(.+)\s+HEAD\s*$") {
-				$默认分支 = $Matches[1].Trim()
-				break
+		$浅提交 = 读取-Git文本 @("rev-parse", "FETCH_HEAD")
+
+		$检出分支 = $分支
+		if ([string]::IsNullOrWhiteSpace($检出分支)) {
+			# 未指定分支时查远端默认分支名，避免硬编码 main
+			$远程HEAD行 = 尝试读取-Git文本 @("ls-remote", "--symref", $成功镜像地址, "HEAD")
+			$检出分支 = "main"
+			foreach ($行 in $远程HEAD行 -split "`n") {
+				if ($行 -match "^ref:\s+refs/heads/(.+)\s+HEAD\s*$") {
+					$检出分支 = $Matches[1].Trim()
+					break
+				}
 			}
 		}
 
-		# 把拉到的 HEAD 提交检出到本地默认分支
-		$浅提交 = 读取-Git文本 @("rev-parse", "FETCH_HEAD")
-		执行-Git命令 @("checkout", "--force", "-B", $默认分支, $浅提交)
+		# 把拉到的分支最新提交检出到本地同名分支
+		执行-Git命令 @("checkout", "--force", "-B", $检出分支, $浅提交)
 
 		# origin 从 init 起就指向原始 GitHub 地址，后续 git pull/push 直接走 GitHub
 
-		Write-Host "克隆完成。已将远程 origin 设置为 $HTTPS仓库地址"
+		Write-Host "克隆完成（分支 $检出分支）。已将远程 origin 设置为 $HTTPS仓库地址"
 
 		# 空仓库（尚无任何提交）无法查看提交信息
 		$最新提交 = 尝试读取-Git文本 @("log", "-1", "--pretty=format:%h %s")

@@ -11,7 +11,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 | 命令 | 用途 |
 |------|------|
 | `拉取-GitHub镜像` | 在现有仓库中通过镜像站 git fetch + 快进合并 |
-| `克隆-GitHub镜像` | 通过镜像站浅克隆仓库（只取默认分支最新提交） |
+| `克隆-GitHub镜像` | 通过镜像站浅克隆仓库（只取一个分支的最新提交，可用 `-分支` 指定） |
 | `推送-GitHub` | 推送当前分支，支持可选代理（首次指定即永久记住） |
 | `查看-镜像统计` | 查看各镜像站的历史成功率、耗时等统计 |
 | `重置-镜像统计` | 清除统计记录，从头开始 |
@@ -44,6 +44,9 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 # 指定自定义镜像站
 克隆-GitHub镜像 "https://github.com/torvalds/linux.git" "D:\linux" -镜像站前缀 "https://gh-proxy.cn/"
+
+# 指定分支（不指定则克隆远端默认分支）
+克隆-GitHub镜像 "https://github.com/PowerShell/PowerShell.git" -分支 "release-7.5"
 ```
 
 克隆完成后，远程 `origin` 直接指向原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。

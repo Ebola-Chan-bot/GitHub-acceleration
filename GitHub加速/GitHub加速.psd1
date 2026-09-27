@@ -4,7 +4,7 @@
 @{
 
     # 模块版本
-    ModuleVersion     = '1.2.1'
+    ModuleVersion     = '1.3.0'
 
     # 模块 GUID
     GUID              = '120952b7-5ab7-4f8c-bb27-3aa50bf5929f'
@@ -27,9 +27,9 @@
    拉取-GitHub镜像 [-镜像站前缀 <镜像URL列表>] [-远程名 origin]
    例：拉取-GitHub镜像；拉取-GitHub镜像 -远程名 upstream
 
-2. 克隆-GitHub镜像：通过镜像站浅克隆仓库（--depth 1 --single-branch），仅取默认分支最新提交；克隆完成后自动将远程 origin 改回原始 GitHub 地址，后续 git 操作不受镜像影响。
-   克隆-GitHub镜像 <仓库HTTPS/SSH地址> <本地路径> [-镜像站前缀 <镜像URL列表>]
-   例：克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"
+2. 克隆-GitHub镜像：通过镜像站浅克隆仓库（--depth 1 --single-branch），仅取指定分支的最新提交（不指定分支则取远端默认分支）；克隆完成后自动将远程 origin 改回原始 GitHub 地址，后续 git 操作不受镜像影响。
+   克隆-GitHub镜像 <仓库HTTPS/SSH地址> [<本地路径>] [-分支 <分支名>] [-镜像站前缀 <镜像URL列表>]
+   例：克隆-GitHub镜像 "git@github.com:用户/仓库.git" "D:\Repo"；克隆-GitHub镜像 <仓库地址> -分支 dev
 
 3. 推送-GitHub：直连推送当前分支，支持可选代理。若当前分支尚无跟踪则自动建立跟踪。
    推送-GitHub [<仓库目录，默认当前目录>] [-代理 <代理地址>] [-远程名 <远程>]
@@ -65,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '拉取后自动加跟踪。克隆默认到当前目录下与仓库同名的子目录。镜像成功率计算采用拉普拉斯平滑。用户取消认证不再视为镜像本身失败，直接中断操作。'
+            ReleaseNotes = '拉取后自动加跟踪。克隆默认到当前目录下与仓库同名的子目录。镜像成功率计算采用拉普拉斯平滑。用户取消认证不再视为镜像本身失败，直接中断操作。克隆-GitHub镜像 新增 -分支 参数：可克隆指定分支的最新提交，不指定则取远端默认分支。'
         }
     }
 }
