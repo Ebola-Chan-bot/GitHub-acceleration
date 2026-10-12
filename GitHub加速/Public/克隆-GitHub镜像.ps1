@@ -65,7 +65,7 @@ function 克隆-GitHub镜像 {
 
 		if (Test-Path -LiteralPath (Join-Path $本地路径 ".git")) {
 			$已有origin = 尝试读取-Git文本 @("-C", $本地路径, "remote", "get-url", "origin")
-			if ($已有origin -eq $HTTPS仓库地址) {
+			if ((转换为-HTTPS仓库地址 $已有origin) -eq $HTTPS仓库地址) {
 				$续传 = $true
 				Write-Host "目标目录已存在同一仓库的未完成克隆，将从断点续传：$本地路径"
 			}
@@ -83,7 +83,7 @@ function 克隆-GitHub镜像 {
 
 			if (Test-Path -LiteralPath (Join-Path $子目录 ".git")) {
 				$已有origin = 尝试读取-Git文本 @("-C", $子目录, "remote", "get-url", "origin")
-				if ($已有origin -eq $HTTPS仓库地址) {
+				if ((转换为-HTTPS仓库地址 $已有origin) -eq $HTTPS仓库地址) {
 					$续传 = $true
 					$本地路径 = $子目录
 					Write-Host "目标子目录已存在同一仓库的未完成克隆，将从断点续传：$本地路径"

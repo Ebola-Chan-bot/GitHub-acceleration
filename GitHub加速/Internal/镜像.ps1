@@ -14,6 +14,11 @@ function 转换为-HTTPS仓库地址 {
 		return "https://github.com/$($Matches[1])"
 	}
 
+	# 远程地址可能本身就带镜像站前缀（如 https://镜像站/https://github.com/...，甚至套多层），先剥离还原为原始 GitHub 地址，避免合成镜像地址时叠加前缀
+	if ($仓库地址 -match "^(?:https?://[^/]+/)+(https://github\.com/.+)$") {
+		return $Matches[1]
+	}
+
 	return $仓库地址
 }
 
