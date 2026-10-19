@@ -10,7 +10,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 
 | 命令 | 用途 |
 |------|------|
-| `拉取-GitHub镜像` | 在现有仓库中通过镜像站 git fetch + 快进合并 |
+| `拉取-GitHub镜像` | 在现有仓库中通过镜像站拉取远端默认分支（或 `-分支` 指定的分支）并自动切换到该分支 |
 | `克隆-GitHub镜像` | 通过镜像站浅克隆仓库（只取一个分支的最新提交，可用 `-分支` 指定） |
 | `推送-GitHub` | 推送当前分支，支持可选代理（首次指定即永久记住） |
 | `查看-镜像统计` | 查看各镜像站的历史成功率、耗时等统计 |
@@ -23,8 +23,11 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 在任意 Git 仓库中执行：
 
 ```powershell
-# 拉取当前分支，使用默认镜像站
+# 拉取远端默认分支并自动切换到它（默认镜像站）
 拉取-GitHub镜像
+
+# 拉取指定分支并自动切换
+拉取-GitHub镜像 -分支 "release-7.5"
 
 # 指定自定义镜像站
 拉取-GitHub镜像 -镜像站前缀 "https://gh-proxy.cn/", "https://gh-proxy.org/"
@@ -98,7 +101,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 1. 获取仓库 HTTPS 地址（SSH 地址自动转换）
 2. 读取本地镜像成功/失败记录，按拉普拉斯平滑后的成功率排序（评分 = (成功+1)/(总次数+2)；记录按镜像站维度统计，跨仓库共享；无记录的镜像得 50%，有记录的向 50% 收敛，样本越少收敛越强）
 3. 按评分从高到低依次尝试各镜像站
-4. 成功后记录统计并继续操作（fetch 后自动 `git merge --ff-only FETCH_HEAD`）
+4. 成功后记录统计并继续操作（fetch 后自动切换到拉取的分支，本地无此分支时自动创建，再 `git merge --ff-only` 快进）
 
 # 默认镜像站
 

@@ -4,7 +4,7 @@
 @{
 
     # 模块版本
-    ModuleVersion     = '1.3.0'
+    ModuleVersion     = '1.3.1'
 
     # 模块 GUID
     GUID              = '120952b7-5ab7-4f8c-bb27-3aa50bf5929f'
@@ -65,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '拉取后自动加跟踪。克隆默认到当前目录下与仓库同名的子目录。镜像成功率计算采用拉普拉斯平滑。用户取消认证不再视为镜像本身失败，直接中断操作。克隆-GitHub镜像 新增 -分支 参数：可克隆指定分支的最新提交，不指定则取远端默认分支。'
+            ReleaseNotes = '修复拉取后没有自动切换到远程分支的问题'
         }
     }
 }
