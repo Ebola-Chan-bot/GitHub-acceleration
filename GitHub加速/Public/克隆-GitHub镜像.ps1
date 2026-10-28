@@ -2,19 +2,11 @@
 .SYNOPSIS
 	通过镜像站点克隆 GitHub 仓库，仅获取默认分支的最新提交（浅克隆）。
 .DESCRIPTION
-	接受仓库远程地址和本地路径作为参数，使用与拉取相同的动态镜像排序策略，
-	依次尝试克隆，成功后记录镜像统计。仅克隆一个分支（默认为远端默认分支，
-	可用 -分支 指定）的最新提交（--depth 1），适合快速获取大型仓库的最新代码。
-	克隆完成后自动将远程 origin 的地址改回原始 GitHub 地址，
-	因此后续手动 git pull/push 等操作直接走 GitHub，不受镜像影响。
+	接受仓库远程地址和本地路径作为参数，使用与拉取相同的动态镜像排序策略，依次尝试克隆，成功后记录镜像统计。仅克隆一个分支（默认为远端默认分支，可用 -分支 指定）的最新提交（--depth 1），适合快速获取大型仓库的最新代码。克隆完成后自动将远程 origin 的地址改回原始 GitHub 地址，并为克隆的分支建立对 origin 同名分支的跟踪关系（git status 直接显示与远程的差异），因此后续手动 git pull/push 等操作直接走 GitHub，不受镜像影响。
 .PARAMETER 仓库地址
 	GitHub 仓库的 HTTPS 或 SSH 地址，如 https://github.com/用户/仓库.git 或 git@github.com:用户/仓库.git。
 .PARAMETER 本地路径
-	克隆到的本地目标路径，默认为当前工作目录（即克隆到当前目录下一个与仓库同名的目录）。
-	若该路径不存在则直接克隆到此路径；
-	若已存在且为目录，则自动在其下创建与仓库同名的子目录并克隆进去；
-	若已存在但不是目录（如同名文件）则报错。
-	若目标目录下已存在同一仓库的上次未完成的克隆，则从断点续传（保留已下载的对象）。
+	克隆到的本地目标路径，默认为当前工作目录（即克隆到当前目录下一个与仓库同名的目录）。若该路径不存在则直接克隆到此路径；若已存在且为目录，则自动在其下创建与仓库同名的子目录并克隆进去；若已存在但不是目录（如同名文件）则报错。若目标目录下已存在同一仓库的上次未完成的克隆，则从断点续传（保留已下载的对象）。
 .PARAMETER 分支
 	可选。要克隆的分支名，不指定则克隆远端默认分支（HEAD）。
 	支持 TAB 补全：本地已有远端引用缓存时用缓存，无缓存（如全新克隆）时按镜像评分排序联网查询分支列表（结果会话内缓存）。分支名不存在属用户输入错误，会立即中止，不尝试其它镜像、不计入镜像统计。
@@ -56,8 +48,7 @@ function 克隆-GitHub镜像 {
 
 	$HTTPS仓库地址 = 转换为-HTTPS仓库地址 $仓库地址
 
-	# 续传识别：目标目录已存在且是同一仓库的半成品克隆（origin 相同）则复用之，
-	# 保留已下载的对象，从断点继续；否则仍报错。
+	# 续传识别：目标目录已存在且是同一仓库的半成品克隆（origin 相同）则复用之，保留已下载的对象，从断点继续；否则仍报错。
 	$续传 = $false
 	if (Test-Path -LiteralPath $本地路径) {
 		if (-not (Test-Path -LiteralPath $本地路径 -PathType Container)) {
@@ -110,8 +101,7 @@ function 克隆-GitHub镜像 {
 	# 候选条目按各站历史成功率排序
 	$候选镜像条目 = 排序-镜像候选 $镜像记录 $镜像站前缀 $HTTPS仓库地址
 
-	# 用 init + fetch 代替 clone：已下载的对象保留在本地，
-	# 失败重试或换镜像续传时只补拉缺失部分，实现断点续传
+	# 用 init + fetch 代替 clone：已下载的对象保留在本地，失败重试或换镜像续传时只补拉缺失部分，实现断点续传
 	if (-not $续传) {
 		执行-Git命令 @("init", $本地路径)
 		执行-Git命令 @("-C", $本地路径, "remote", "add", "origin", $HTTPS仓库地址)
@@ -202,9 +192,16 @@ function 克隆-GitHub镜像 {
 		# 把拉到的分支最新提交检出到本地同名分支
 		执行-Git命令 @("checkout", "--force", "-B", $检出分支, $浅提交)
 
+		# 镜像 fetch 只写 FETCH_HEAD、不生成远程跟踪引用，这里用刚拉到的提交直接刷新 refs/remotes/origin/<分支>（免去再直连 GitHub），并为本地分支建立跟踪，使 git status/pull/push 开箱即用。未指定 -分支 时再按 git clone 的惯例记录 origin/HEAD 指向远端默认分支。
+		执行-Git命令 @("update-ref", "refs/remotes/origin/$检出分支", $浅提交)
+		if ([string]::IsNullOrWhiteSpace($分支)) {
+			执行-Git命令 @("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/$检出分支")
+		}
+		执行-Git命令 @("branch", "--set-upstream-to=origin/$检出分支", $检出分支)
+
 		# origin 从 init 起就指向原始 GitHub 地址，后续 git pull/push 直接走 GitHub
 
-		Write-Host "克隆完成（分支 $检出分支）。已将远程 origin 设置为 $HTTPS仓库地址"
+		Write-Host "克隆完成（分支 $检出分支，已关联 origin/$检出分支）。已将远程 origin 设置为 $HTTPS仓库地址"
 
 		# 空仓库（尚无任何提交）无法查看提交信息
 		$最新提交 = 尝试读取-Git文本 @("log", "-1", "--pretty=format:%h %s")

@@ -52,7 +52,7 @@ Install-Module -Name GitHub加速 -Scope AllUsers
 克隆-GitHub镜像 "https://github.com/PowerShell/PowerShell.git" -分支 "release-7.5"
 ```
 
-克隆完成后，远程 `origin` 直接指向原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
+克隆完成后，本地分支自动关联（跟踪）`origin` 同名分支，`git status` 直接显示与远程的差异，`git pull`/`git push` 无需额外配置；且远程 `origin` 直接指向原始 GitHub 地址（而非镜像站），因此之后的 `git pull`、`git push`、以及 `拉取-GitHub镜像` 等操作都直接面向 GitHub，不受克隆时所用镜像的影响。
 
 克隆支持**断点续传**：内部采用 `git init` + `git fetch` 实现，已下载的对象会保留在本地。若某次所有镜像都失败（如大仓库传到一半断流），再次运行同一条克隆命令即可从断点继续，只补拉缺失部分，还可以换用其他镜像站续传。
 
