@@ -84,9 +84,17 @@ function Git执行并区分取消 {
 		$_ -match '(?i)user cancell'
 	}
 
+	# 「找不到远端引用」属于用户输入错误（分支名写错或该分支确实不存在），换任何镜像结果都一样，应立即中止，不继续尝试、不记镜像统计。
+	$分支不存在 = $输出行 | Where-Object {
+		$_ -match "(?i)couldn't find remote ref" -or
+		$_ -match '(?i)remote ref .* does not exist' -or
+		$_ -match '(?i)no such ref was fetched'
+	}
+
 	return [pscustomobject]@{
-		成功   = ($退出码 -eq 0)
-		用户取消 = [bool]$已取消
+		成功     = ($退出码 -eq 0)
+		用户取消   = [bool]$已取消
+		分支不存在 = [bool]$分支不存在
 	}
 }
 
