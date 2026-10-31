@@ -65,7 +65,7 @@
             Tags         = @('git', 'GitHub', '代理', '提取', '拉取', '镜像', '加速', '中国')
             LicenseUri   = 'https://opensource.org/licenses/MIT'
             ProjectUri   = 'https://github.com/Ebola-Chan-bot/GitHub-Acceleration'
-            ReleaseNotes = '修复拉取后没有自动切换到远程分支的问题。拉取和克隆的 -分支 参数新增 TAB 补全。'
+            ReleaseNotes = '修复拉取后没有自动切换到远程分支的问题。拉取和克隆的 -分支 参数新增 TAB 补全。拉取-GitHub镜像 不指定 -分支 时改为拉取与本地当前分支同名的远端分支。'
         }
     }
 }
